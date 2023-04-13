@@ -5,7 +5,7 @@
 
 float* originalZ;
 int multiplierDir = -1;
-float multiplier = 0;
+float multiplier = 1;
 
 
 void init_scene(Scene* scene)
@@ -24,22 +24,22 @@ void init_scene(Scene* scene)
     scene->material.ambient.green = 0.0;
     scene->material.ambient.blue = 0.0;
 
-    scene->material.diffuse.red = 1.0;
-    scene->material.diffuse.green = 1.0;
-    scene->material.diffuse.blue = 0.0;
+    scene->material.diffuse.red = 100.0;
+    scene->material.diffuse.green = 100.0;
+    scene->material.diffuse.blue = 100.0;
 
     scene->material.specular.red = 0.0;
     scene->material.specular.green = 0.0;
     scene->material.specular.blue = 0.0;
 
-    scene->material.shininess = 0.0;
+    scene->material.shininess = 1.0;
 }
 
 void set_lighting()
 {
     float ambient_light[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-    float diffuse_light[] = { 1.0f, 1.0f, 1.0, 1.0f };
-    float specular_light[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    float diffuse_light[] = { 1.0f, 1.0f, 1.0, 0.0f };
+    float specular_light[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     float position[] = { 0.0f, 0.0f, 10.0f, 1.0f };
 
     glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light);
@@ -77,7 +77,7 @@ void set_material(const Material* material)
 
 void update_scene(Scene* scene)
 {
-    multiplier += 0.002;
+    multiplier += 0;
     for (int i = 0; i < scene->cube.n_vertices; i++){
         scene->cube.vertices[i].z = originalZ[i] * multiplier;
     }
