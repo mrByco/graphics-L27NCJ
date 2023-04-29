@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "camera.h": "c",
+        "model.h": "c",
+        "draw.h": "c",
+        "loader.h": "c",
+        "scene.h": "c",
+        "bike.h": "c",
+        "utils.h": "c",
+        "control.h": "c",
+        "stdbool.h": "c"
+    }
+}

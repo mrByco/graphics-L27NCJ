@@ -1,46 +1,23 @@
 #include "scene.h"
+#include "loader.h"
+#include "bike.h"
+#include "utils.h"
 
-#include <obj/load.h>
 #include <obj/draw.h>
 
-float* originalZ;
-int multiplierDir = -1;
-float multiplier = 1;
-
-
-void init_scene(Scene* scene)
+void init_scene(Scene *scene)
 {
-    load_model(&(scene->cube), "assets/models/raptor.obj");
-    scene->texture_id = load_texture("assets/textures/raptor.png");
-    
-    originalZ = malloc(sizeof(float) * scene->cube.n_normals);
-    for (int i = 0; i < scene->cube.n_vertices; i++){
-        originalZ[i] = scene->cube.vertices[i].z;
-    }
-
-    glBindTexture(GL_TEXTURE_2D, scene->texture_id);
-
-    scene->material.ambient.red = 0.0;
-    scene->material.ambient.green = 0.0;
-    scene->material.ambient.blue = 0.0;
-
-    scene->material.diffuse.red = 100.0;
-    scene->material.diffuse.green = 100.0;
-    scene->material.diffuse.blue = 100.0;
-
-    scene->material.specular.red = 0.0;
-    scene->material.specular.green = 0.0;
-    scene->material.specular.blue = 0.0;
-
-    scene->material.shininess = 1.0;
+    scene->bike = malloc(sizeof(Bike));
+    load_bike(scene->bike);
+    init_bike(scene->bike);
 }
 
 void set_lighting()
 {
-    float ambient_light[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-    float diffuse_light[] = { 1.0f, 1.0f, 1.0, 0.0f };
-    float specular_light[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    float position[] = { 0.0f, 0.0f, 10.0f, 1.0f };
+    float ambient_light[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    float diffuse_light[] = {1.0f, 1.0f, 1.0, 0.0f};
+    float specular_light[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    float position[] = {0.0f, 0.0f, 10.0f, 1.0f};
 
     glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_light);
@@ -48,25 +25,22 @@ void set_lighting()
     glLightfv(GL_LIGHT0, GL_POSITION, position);
 }
 
-void set_material(const Material* material)
+void set_material(const Material *material)
 {
     float ambient_material_color[] = {
         material->ambient.red,
         material->ambient.green,
-        material->ambient.blue
-    };
+        material->ambient.blue};
 
     float diffuse_material_color[] = {
         material->diffuse.red,
         material->diffuse.green,
-        material->diffuse.blue
-    };
+        material->diffuse.blue};
 
     float specular_material_color[] = {
         material->specular.red,
         material->specular.green,
-        material->specular.blue
-    };
+        material->specular.blue};
 
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient_material_color);
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse_material_color);
@@ -75,20 +49,19 @@ void set_material(const Material* material)
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, &(material->shininess));
 }
 
-void update_scene(Scene* scene)
+void update_scene(Scene *scene, double elapsed_time)
 {
-    multiplier += 0;
-    for (int i = 0; i < scene->cube.n_vertices; i++){
-        scene->cube.vertices[i].z = originalZ[i] * multiplier;
-    }
+    update_bike_control(scene->bike);
+    move_bike(scene->bike, elapsed_time);
 }
 
-void render_scene(const Scene* scene)
+void render_scene(const Scene *scene)
 {
-    set_material(&(scene->material));
+    set_material(&(scene->bike->material));
     set_lighting();
     draw_origin();
-    draw_model(&(scene->cube));
+    draw_model_scene_placed(scene->bike->position, scene->bike->rotation, &(scene->bike->model));
+    // draw_model(&(scene->bike->model));
 }
 
 void draw_origin()
@@ -108,4 +81,23 @@ void draw_origin()
     glVertex3f(0, 0, 1);
 
     glEnd();
+}
+
+void move_bike(Bike *bike, double time_delta)
+{
+    bike->position.x += bike->speed * sin(degree_to_radian(-bike->rotation.z)) * time_delta;
+    bike->position.y += bike->speed * cos(degree_to_radian(-bike->rotation.z)) * time_delta;
+    bike->rotation.z += bike->speed * bike->steering * 50 * time_delta;
+    bike->rotation.y = -bike->steering * 50;
+}
+
+void draw_model_scene_placed(vec3 offset, vec3 rotation, Model *model)
+{
+    glPushMatrix();
+    glTranslatef(offset.x, offset.y, offset.z);
+    glRotatef(rotation.z, 0, 0, 1);
+    glRotatef(rotation.x, 1, 0, 0);
+    glRotatef(rotation.y, 0, 1, 0);
+    draw_model(model);
+    glPopMatrix();
 }

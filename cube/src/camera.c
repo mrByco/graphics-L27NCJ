@@ -1,39 +1,54 @@
 #include "camera.h"
+#include "bike.h"
 
 #include <GL/gl.h>
 
 #include <math.h>
 
-void init_camera(Camera* camera)
+void init_camera(Camera *camera)
 {
     camera->position.x = 0.0;
-    camera->position.y = 0.0;
-    camera->position.z = 1.0;
+    camera->position.y = -5.0;
+    camera->position.z = 0.0;
     camera->rotation.x = 0.0;
     camera->rotation.y = 0.0;
-    camera->rotation.z = 0.0;
+    camera->rotation.z = 90.0;
     camera->speed.x = 0.0;
     camera->speed.y = 0.0;
     camera->speed.z = 0.0;
 
+    camera->attach_spring_length = 5;
+    camera->attached_to_bike = 0;
+
     camera->is_preview_visible = false;
 }
 
-void update_camera(Camera* camera, double time)
+void update_camera(Camera *camera, double time)
 {
     double angle;
     double side_angle;
+    double hor_angle;
 
     angle = degree_to_radian(camera->rotation.z);
     side_angle = degree_to_radian(camera->rotation.z + 90.0);
+    hor_angle = degree_to_radian(camera->rotation.x);
 
-    camera->position.x += cos(angle) * camera->speed.y * time;
+    /*camera->position.x += cos(angle) * camera->speed.y * time;
     camera->position.y += sin(angle) * camera->speed.y * time;
     camera->position.x += cos(side_angle) * camera->speed.x * time;
-    camera->position.y += sin(side_angle) * camera->speed.x * time;
+    camera->position.y += sin(side_angle) * camera->speed.x * time;*/
+
+    if (camera->attached_to_bike)
+    {
+        camera->position.x = (camera->bike->position.x - cos(angle) * camera->attach_spring_length);
+        camera->position.y = (camera->bike->position.y - sin(angle) * camera->attach_spring_length);
+        camera->position.z = -(camera->bike->position.z + sin(hor_angle) * camera->attach_spring_length) + 1;
+
+        camera->rotation.z = camera->bike->rotation.z + 90;
+    }
 }
 
-void set_view(const Camera* camera)
+void set_view(const Camera *camera)
 {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -43,34 +58,38 @@ void set_view(const Camera* camera)
     glTranslatef(-camera->position.x, -camera->position.y, -camera->position.z);
 }
 
-void rotate_camera(Camera* camera, double horizontal, double vertical)
+void rotate_camera(Camera *camera, double horizontal, double vertical)
 {
     camera->rotation.z += horizontal;
     camera->rotation.x += vertical;
 
-    if (camera->rotation.z < 0) {
+    if (camera->rotation.z < 0)
+    {
         camera->rotation.z += 360.0;
     }
 
-    if (camera->rotation.z > 360.0) {
+    if (camera->rotation.z > 360.0)
+    {
         camera->rotation.z -= 360.0;
     }
 
-    if (camera->rotation.x < 0) {
+    if (camera->rotation.x < 0)
+    {
         camera->rotation.x += 360.0;
     }
 
-    if (camera->rotation.x > 360.0) {
+    if (camera->rotation.x > 360.0)
+    {
         camera->rotation.x -= 360.0;
     }
 }
 
-void set_camera_speed(Camera* camera, double speed)
+void set_camera_speed(Camera *camera, double speed)
 {
     camera->speed.y = speed;
 }
 
-void set_camera_side_speed(Camera* camera, double speed)
+void set_camera_side_speed(Camera *camera, double speed)
 {
     camera->speed.x = speed;
 }
@@ -100,4 +119,11 @@ void show_texture_preview()
     glDisable(GL_COLOR_MATERIAL);
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
+}
+
+void attach_to_bike(Camera *camera, Bike *bike)
+{
+    camera->bike = bike;
+    camera->attached_to_bike = 1;
+    printf("Attached to bike\n");
 }
