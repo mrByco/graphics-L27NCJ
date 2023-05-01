@@ -11,6 +11,12 @@ typedef struct vec3
     float z;
 } vec3;
 
+typedef struct vec2
+{
+    float x;
+    float y;
+} vec2;
+
 /**
  * Color with RGB components
  */

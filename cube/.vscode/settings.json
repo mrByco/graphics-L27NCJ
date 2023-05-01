@@ -8,6 +8,10 @@
         "bike.h": "c",
         "utils.h": "c",
         "control.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "array": "c",
+        "initializer_list": "c",
+        "utility": "c",
+        "math.h": "c"
     }
 }

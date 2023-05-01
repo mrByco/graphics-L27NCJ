@@ -169,7 +169,7 @@ void handle_app_events(App *app)
             {
                 modify_steering(&(app->control), mouse_x - x);
 
-                //  rotate_camera(&(app->camera), mouse_x - x, mouse_y - y);
+                // rotate_camera(&(app->camera), mouse_x - x, mouse_y - y);
             }
             mouse_x = x;
             mouse_y = y;

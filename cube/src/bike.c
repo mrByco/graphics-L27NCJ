@@ -14,7 +14,7 @@ void init_bike(Bike *bike)
     bike->rotation.y = -5.0;
     bike->rotation.z = 0.0;
 
-    bike->speed = 0.8;
+    bike->speed = 3;
     bike->steering = 1;
 }
 
@@ -26,6 +26,5 @@ void bind_control(Bike *bike, Control *control)
 
 void update_bike_control(Bike *bike)
 {
-    printf("contorl steering: %f\n", bike->control->target_steering);
     bike->steering = bike->control->target_steering;
 }
