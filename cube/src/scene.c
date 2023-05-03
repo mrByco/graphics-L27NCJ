@@ -13,14 +13,18 @@ void init_scene(Scene *scene)
     scene->map = map_init(800);
     load_bike(scene->bike);
     init_bike(scene->bike);
+    scene->building_count = 2;
+
+    scene->buildings = malloc(scene->building_count * sizeof(Building));
+    init_buildings(scene->map, scene->building_count, scene->buildings);
 }
 
-void set_lighting()
+void set_lighting(Scene *scene)
 {
-    float ambient_light[] = {0.0f, 20.0f, 0.0f, 1.0f};
+    float ambient_light[] = {0.0f, 1.0f, 1.0f, 1.0f};
     float diffuse_light[] = {1.0f, 1.0f, 1.0, 1.0f};
-    float specular_light[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    float position[] = {0.0f, 0.0f, 5.0f, 1.0f};
+    float specular_light[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    float position[] = {scene->bike->position.x, scene->bike->position.y, scene->bike->position.z, 5.0f};
 
     glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_light);
@@ -60,12 +64,12 @@ void update_scene(Scene *scene, double elapsed_time)
 
 void render_scene(const Scene *scene)
 {
-    set_material(&(scene->bike->material));
-    set_lighting();
+    set_lighting(scene);
     draw_origin();
+    set_material(&(scene->bike->material));
     draw_model_scene_placed(scene->bike->position, scene->bike->rotation, &(scene->bike->model));
     draw_map(scene->map);
-    //  draw_model(&(scene->bike->model));
+    draw_buildings(scene);
 }
 
 void draw_origin()
@@ -108,8 +112,6 @@ void draw_model_scene_placed(vec3 offset, vec3 rotation, Model *model)
 
 void draw_map(Map *map)
 {
-    glBegin(GL_LINES);
-    glColor3f(1, 1, 1);
 
     for (int i = 1; i < map->length; i++)
     {
@@ -118,8 +120,6 @@ void draw_map(Map *map)
         //  glVertex3f(map->x[i - 1], map->y[i - 1], 0);
         //  glVertex3f(map->x[i], map->y[i], 0);
     }
-
-    glEnd();
 }
 
 void draw_point2D(float x, float y)
@@ -133,6 +133,22 @@ void draw_point2D(float x, float y)
     glVertex3f(x - f, y + f, 0);
 }
 
+void draw_buildings(Scene *scene)
+{
+    for (int i = 0; i < scene->building_count; i++)
+    {
+        Building *currentBuilting = &(scene->buildings[i]);
+        draw_building(scene->buildings[i]);
+    }
+}
+
+void draw_building(Building building)
+{
+    printf("buildingid: %d\n", building.id);
+    set_material(&(building.material));
+    draw_model_scene_placed(building.position, building.rotation, &(building.model));
+}
+
 void draw_road_segment(float x0, float y0, float x0_normal, float y0_normal, float x1, float y1, float x1_normal, float y1_normal)
 {
     vec2 p1 = {x0 + y0_normal, y0 - x0_normal};
@@ -142,7 +158,7 @@ void draw_road_segment(float x0, float y0, float x0_normal, float y0_normal, flo
 
     glBegin(GL_QUADS);
 
-    glColor3f(0.5, 0.5, 0.5);
+    glColor3f(1, 1, 1);
     glVertex3f(p2.x, p2.y, 0);
     glVertex3f(p4.x, p4.y, 0);
     glVertex3f(p3.x, p3.y, 0);

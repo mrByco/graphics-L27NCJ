@@ -6,6 +6,7 @@
 #include "bike.h"
 #include "loader.h"
 #include "map.h"
+#include "building.h"
 
 #include <obj/model.h>
 
@@ -13,6 +14,8 @@ typedef struct Scene
 {
     Bike *bike;
     Map *map;
+    Building *buildings;
+    int building_count;
 } Scene;
 
 /**
@@ -23,7 +26,7 @@ void init_scene(Scene *scene);
 /**
  * Set the lighting of the scene.
  */
-void set_lighting();
+void set_lighting(Scene *scene);
 
 /**
  * Set the current material.
