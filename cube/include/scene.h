@@ -48,6 +48,7 @@ void render_scene(const Scene *scene);
  */
 void draw_origin();
 void draw_point2D(float x, float y);
-void draw_road_segment(float x0, float y0, float x0_normal, float y0_normal, float x1, float y1, float x1_normal, float y1_normal);
+void draw_road_segment(float x0, float y0, float x0_normal, float y0_normal, float x1, float y1, float x1_normal, float y1_normal, float width);
+void draw_skybox(vec3 center_pos, float distance);
 
 #endif /* SCENE_H */

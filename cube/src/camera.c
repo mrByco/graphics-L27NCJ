@@ -42,7 +42,7 @@ void update_camera(Camera *camera, double time)
     {
         camera->position.x = (camera->bike->position.x - cos(angle) * camera->attach_spring_length);
         camera->position.y = (camera->bike->position.y - sin(angle) * camera->attach_spring_length);
-        camera->position.z = -(camera->bike->position.z + sin(hor_angle) * camera->attach_spring_length) + 1;
+        camera->position.z = -(camera->bike->position.z + sin(hor_angle) * camera->attach_spring_length) + 2;
 
         camera->rotation.z = camera->bike->rotation.z + 90;
     }

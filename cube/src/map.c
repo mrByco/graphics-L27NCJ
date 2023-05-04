@@ -26,6 +26,12 @@ Map *map_init(int length)
         map->y[i] = 0.3 * (-3.2 * sin(x) - 1 * sin((-1.7) * _E * x) + 2.1 * sin(0.7 * _PI * x)) * MAP_SCALE;
     }
 
+    map->normal_x[0] = map->x[1] - map->x[0];
+    map->normal_y[0] = map->y[1] - map->y[0];
+    float normal_length = sqrt(map->normal_x[0] * map->normal_x[0] + map->normal_y[0] * map->normal_y[0]);
+    map->normal_x[0] /= normal_length;
+    map->normal_y[0] /= normal_length;
+
     for (int i = 1; i < length; i++)
     {
         map->normal_x[i] = map->x[i] - map->x[i - 1];
@@ -35,9 +41,9 @@ Map *map_init(int length)
         map->normal_y[i] /= normal_length;
     }
     // print map
-    for (int i = 0; i < length; i++)
+    /*for (int i = 0; i < length; i++)
     {
         printf("%f %f %f %f\n", map->x[i], map->y[i], map->normal_x[i], map->normal_y[i]);
-    }
+    }*/
     return map;
 }

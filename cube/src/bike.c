@@ -6,7 +6,7 @@
 
 void init_bike(Bike *bike)
 {
-    bike->position.x = 1;
+    bike->position.x = 0;
     bike->position.y = 0;
     bike->position.z = 0;
 
@@ -14,7 +14,7 @@ void init_bike(Bike *bike)
     bike->rotation.y = -5.0;
     bike->rotation.z = 0.0;
 
-    bike->speed = 3;
+    bike->speed = 5;
     bike->steering = 1;
 }
 
