@@ -20,15 +20,20 @@ void init_scene(Scene *scene)
     road_material = malloc(sizeof(Material));
     init_material(road_material);
 
+    scene->state = Running;
+    scene->lighting = 1.0f;
+    scene->game_over_texture = load_texture("assets/textures/game_over_texture.png");
+    scene->pause_texture = load_texture("assets/textures/help_texture.png");
+
     scene->buildings = malloc(scene->building_count * sizeof(Building));
     init_buildings(scene->map, scene->building_count, scene->buildings);
 }
 
 void set_lighting(Scene *scene)
 {
-    float ambient_light[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    float diffuse_light[] = {0.5f, 0.5f, 0.5, 1.0f};
-    float specular_light[] = {0.0f, 0.0f, 0.0f, 0.0f};
+    float ambient_light[] = {1.0f * scene->lighting, 1.0f * scene->lighting, 1.0f * scene->lighting, 1.0f * scene->lighting};
+    float diffuse_light[] = {0.5f * scene->lighting, 0.5f * scene->lighting, 0.5f * scene->lighting, 1.0f * scene->lighting};
+    float specular_light[] = {0.0f * scene->lighting, 0.0f * scene->lighting, 0.0f * scene->lighting, 0.0f * scene->lighting};
     float position[] = {scene->bike->position.x + 5, scene->bike->position.y, scene->bike->position.z + 5, 1.0f};
 
     glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light);
@@ -63,12 +68,25 @@ void set_material(const Material *material)
 
 void update_scene(Scene *scene, double elapsed_time)
 {
+    if (scene->state != Running)
+        return;
     update_bike_control(scene->bike);
     move_bike(scene->bike, elapsed_time);
+    check_for_loose(scene);
 }
 
 void render_scene(const Scene *scene)
 {
+    if (scene->state == Paused)
+    {
+        draw_gui(scene->pause_texture);
+        return;
+    }
+    else if (scene->state == GameOver)
+    {
+        draw_gui(scene->game_over_texture);
+        return;
+    }
     set_lighting(scene);
     draw_origin();
     set_material(&(scene->bike->material));
@@ -124,9 +142,6 @@ void draw_map(Map *map)
     {
         float width = i < 10 ? 5 : 1;
         draw_road_segment(map->x[i - 1], map->y[i - 1], map->normal_x[i - 1], map->normal_y[i - 1], map->x[i], map->y[i], map->normal_x[i], map->normal_y[i], width);
-        // draw_point2D(map->x[i], map->y[i]);
-        //  glVertex3f(map->x[i - 1], map->y[i - 1], 0);
-        //  glVertex3f(map->x[i], map->y[i], 0);
     }
 }
 
@@ -146,15 +161,12 @@ void draw_buildings(Scene *scene)
     for (int i = 0; i < scene->building_count; i++)
     {
         Building currentBuilting = scene->buildings[i];
-        // printf("building id8: %d\n", scene->buildings);
-        // printf("building id: %d\n", &(currentBuilting));
         draw_building(currentBuilting);
     }
 }
 
 void draw_building(Building building)
 {
-    // printf("position: %f, %f, %f\n", building.position.x, building.position.y, building.position.z);
     if (building.hidden == 1)
     {
         return;
@@ -194,11 +206,8 @@ void draw_skybox(vec3 center_pos, float distance)
 
     float shininess = 0.0;
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, &shininess);
-    printf("center_pos, distance: %f, %f, %f, %f\n", center_pos.x, center_pos.y, center_pos.z, distance);
 
     glBegin(GL_QUADS);
-
-    printf("center_pos, distance: %f, %f, %f, %f\n", center_pos.x, center_pos.y, center_pos.z, distance);
 
     // Draw the left face
     glVertex3f(center_pos.x - distance, center_pos.y - distance, center_pos.z + distance);
@@ -240,4 +249,70 @@ void draw_skybox(vec3 center_pos, float distance)
     glVertex3f(center_pos.x + distance, center_pos.y + distance, center_pos.z - 0.1f);
 
     glEnd();
+}
+
+void check_for_loose(Scene *scene)
+{
+    Bike *bike = scene->bike;
+    float minDistanceToMap = 1.4f;
+    for (int i = 0; i < scene->map->length; i++)
+    {
+        vec2 checkpoint = {scene->map->x[i], scene->map->y[i]};
+        double distance = sqrt(pow(bike->position.x - checkpoint.x, 2) + pow(bike->position.y - checkpoint.y, 2));
+        if (distance < minDistanceToMap)
+        {
+            minDistanceToMap = distance;
+        }
+    }
+    float distanceToFirstPoint = sqrt(pow(bike->position.x - scene->map->x[0], 2) + pow(bike->position.y - scene->map->y[0], 2));
+    if (minDistanceToMap > 1.39f && distanceToFirstPoint > 15)
+    {
+        printf("You loose\n");
+        scene->state = GameOver;
+    }
+}
+
+void draw_gui(GLuint texture)
+{
+
+    float ambient_material_color[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    float zeros[] = {0.0, 0.0, 0.0, 1.0};
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient_material_color);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, zeros);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, zeros);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    glColor3f(1, 1, 1);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glBegin(GL_QUADS);
+    glTexCoord2f(0, 0);
+    glVertex3d(-2.5, 1.5, -3);
+    glTexCoord2f(1, 0);
+    glVertex3d(2.5, 1.5, -3);
+    glTexCoord2f(1, 1);
+    glVertex3d(2.5, -1.5, -3);
+    glTexCoord2f(0, 1);
+    glVertex3d(-2.5, -1.5, -3);
+    glEnd();
+}
+
+void toggle_pause(Scene *scene)
+{
+    scene->state = scene->state == Paused ? Running : Paused;
+}
+
+void restart_game(Scene *scene)
+{
+
+    free(scene->bike);
+    free(scene->map);
+
+    free(road_material);
+
+    free(scene->buildings);
+
+    init_scene(scene);
 }

@@ -1,6 +1,7 @@
 #include "app.h"
 #include "bike.h"
 #include "game_control.h"
+#include "scene.h"
 
 #include <SDL2/SDL_image.h>
 
@@ -155,6 +156,22 @@ void handle_app_events(App *app)
             case SDL_SCANCODE_A:
             case SDL_SCANCODE_D:
                 set_camera_side_speed(&(app->camera), 0);
+                break;
+            case SDL_SCANCODE_I:
+                app->scene.lighting += 0.1;
+                app->scene.lighting = app->scene.lighting > 1 ? 1 : app->scene.lighting;
+                break;
+            case SDL_SCANCODE_K:
+                app->scene.lighting -= 0.1;
+                app->scene.lighting = app->scene.lighting < 0 ? 0 : app->scene.lighting;
+                printf("%f\n", app->scene.lighting);
+                break;
+            case SDL_SCANCODE_F1:
+                toggle_pause(&(app->scene));
+                break;
+                break;
+            case SDL_SCANCODE_F12:
+                restart_game(&(app->scene));
                 break;
             default:
                 break;
