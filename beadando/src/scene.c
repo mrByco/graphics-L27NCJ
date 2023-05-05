@@ -275,7 +275,6 @@ void check_for_loose(Scene *scene)
         }
     }
     float distanceToFirstPoint = sqrt(pow(bike->position.x - scene->map->x[0], 2) + pow(bike->position.y - scene->map->y[0], 2));
-    printf("Distance to map: %f\n", minDistanceToMap);
     if (minDistanceToMap > MAP_WIDTH + 0.1f && distanceToFirstPoint > 15)
     {
         printf("You loose\n");
