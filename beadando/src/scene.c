@@ -20,8 +20,8 @@ void init_scene(Scene *scene)
     road_material = malloc(sizeof(Material));
     init_material(road_material);
 
-    scene->state = Running;
     scene->lighting = 1.0f;
+    scene->state = Paused;
     scene->game_over_texture = load_texture("assets/textures/game_over_texture.png");
     scene->pause_texture = load_texture("assets/textures/help_texture.png");
 
@@ -77,6 +77,7 @@ void update_scene(Scene *scene, double elapsed_time)
 
 void render_scene(const Scene *scene)
 {
+    set_lighting(scene);
     if (scene->state == Paused)
     {
         draw_gui(scene->pause_texture);
@@ -87,7 +88,6 @@ void render_scene(const Scene *scene)
         draw_gui(scene->game_over_texture);
         return;
     }
-    set_lighting(scene);
     draw_origin();
     set_material(&(scene->bike->material));
     draw_model_scene_placed(scene->bike->position, scene->bike->rotation, &(scene->bike->model), scene->bike->texture_id);

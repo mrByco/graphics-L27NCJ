@@ -1,3 +1,0 @@
-D:/Repos/graphics-L27NCJ/beadando/cmake-build-debug/CMakeFiles/beadando.dir
-D:/Repos/graphics-L27NCJ/beadando/cmake-build-debug/CMakeFiles/edit_cache.dir
-D:/Repos/graphics-L27NCJ/beadando/cmake-build-debug/CMakeFiles/rebuild_cache.dir
