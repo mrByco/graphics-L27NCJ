@@ -8,6 +8,8 @@
 #include <obj/draw.h>
 #include <math.h>
 
+#define MAP_WIDTH 1
+
 Material *road_material;
 
 void init_scene(Scene *scene)
@@ -16,6 +18,8 @@ void init_scene(Scene *scene)
     scene->map = map_init(400);
     load_bike(scene->bike);
     init_bike(scene->bike);
+    scene->bike->position.x = scene->map->x[0];
+    scene->bike->position.y = scene->map->y[0];
     scene->building_count = 100;
     road_material = malloc(sizeof(Material));
     init_material(road_material);
@@ -140,7 +144,7 @@ void draw_map(Map *map)
 
     for (int i = 1; i < map->length; i++)
     {
-        float width = i < 10 ? 5 : 1;
+        float width = i < 10 ? 5 : MAP_WIDTH;
         draw_road_segment(map->x[i - 1], map->y[i - 1], map->normal_x[i - 1], map->normal_y[i - 1], map->x[i], map->y[i], map->normal_x[i], map->normal_y[i], width);
     }
 }
@@ -254,18 +258,25 @@ void draw_skybox(vec3 center_pos, float distance)
 void check_for_loose(Scene *scene)
 {
     Bike *bike = scene->bike;
-    float minDistanceToMap = 1.4f;
-    for (int i = 0; i < scene->map->length; i++)
+    float minDistanceToMap = 9.0f;
+    for (int i = 0; i < scene->map->length - 1; i++)
     {
-        vec2 checkpoint = {scene->map->x[i], scene->map->y[i]};
-        double distance = sqrt(pow(bike->position.x - checkpoint.x, 2) + pow(bike->position.y - checkpoint.y, 2));
+        vec2 checkpoint1 = {scene->map->x[i], scene->map->y[i]};
+        vec2 checkpoint2 = {scene->map->x[i + 1], scene->map->y[i + 1]};
+
+        vec2 bikePos2d = {bike->position.x, bike->position.y};
+
+        // calculate the distance to the line segment
+        double distance = distance_to_line_segment(bikePos2d, checkpoint1, checkpoint2);
+
         if (distance < minDistanceToMap)
         {
             minDistanceToMap = distance;
         }
     }
     float distanceToFirstPoint = sqrt(pow(bike->position.x - scene->map->x[0], 2) + pow(bike->position.y - scene->map->y[0], 2));
-    if (minDistanceToMap > 1.39f && distanceToFirstPoint > 15)
+    printf("Distance to map: %f\n", minDistanceToMap);
+    if (minDistanceToMap > MAP_WIDTH + 0.1f && distanceToFirstPoint > 15)
     {
         printf("You loose\n");
         scene->state = GameOver;
@@ -315,4 +326,38 @@ void restart_game(Scene *scene)
     free(scene->buildings);
 
     init_scene(scene);
+}
+
+double distance_to_line_segment(vec2 point, vec2 segmentStart, vec2 segmentEnd)
+{
+    vec2 v = {
+        segmentEnd.x - segmentStart.x,
+        segmentEnd.y - segmentStart.y,
+    };
+    vec2 w = {
+        point.x - segmentStart.x,
+        point.y - segmentStart.y,
+    };
+
+    double c1 = dot(w, v);
+    if (c1 <= 0)
+        return distance(point, segmentStart);
+
+    double c2 = dot(v, v);
+    if (c2 <= c1)
+        return distance(point, segmentEnd);
+
+    double b = c1 / c2;
+    vec2 pb = {segmentStart.x + b * v.x, segmentStart.y + b * v.y};
+    return distance(point, pb);
+}
+
+double dot(vec2 v1, vec2 v2)
+{
+    return v1.x * v2.x + v1.y * v2.y;
+}
+
+double distance(vec2 v1, vec2 v2)
+{
+    return sqrt(pow(v1.x - v2.x, 2) + pow(v1.y - v2.y, 2));
 }

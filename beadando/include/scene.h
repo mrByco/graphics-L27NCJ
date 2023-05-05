@@ -67,5 +67,8 @@ void draw_skybox(vec3 center_pos, float distance);
 void toggle_pause(Scene *scene);
 void check_for_loose(Scene *scene);
 void restart_game(Scene *scene);
+double distance_to_line_segment(vec2 point, vec2 segmentStart, vec2 segmentEnd);
+double dot(vec2 v1, vec2 v2);
+double distance(vec2 v1, vec2 v2);
 
 #endif /* SCENE_H */

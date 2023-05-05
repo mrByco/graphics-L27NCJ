@@ -1,6 +1,7 @@
 #include "map.h";
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 #define _USE_MATH_DEFINES
 #define _E 2.71828182845904523536
 #define _PI 3.14159265358979323846
@@ -10,6 +11,8 @@ Map *map;
 
 Map *map_init(int length)
 {
+    srand(time(NULL));
+    int seed = rand();
     float generator_direction = 0;
 
     map = malloc(sizeof(Map));
@@ -21,9 +24,30 @@ Map *map_init(int length)
 
     for (int i = 0; i < length; i++)
     {
-        double x = (float)i / MAP_SCALE;
+        double x = (float)i / MAP_SCALE + seed;
         map->x[i] = x * MAP_SCALE;
         map->y[i] = 0.3 * (-3.2 * sin(x) - 1 * sin((-1.7) * _E * x) + 2.1 * sin(0.7 * _PI * x)) * MAP_SCALE;
+    }
+
+    float minX = map->x[0];
+    float minY = map->y[0];
+
+    for (int i = 1; i < length; i++)
+    {
+        if (map->x[i] < minX)
+        {
+            minX = map->x[i];
+        }
+        if (map->y[i] < minY)
+        {
+            minY = map->y[i];
+        }
+    }
+
+    for (int i = 0; i < length; i++)
+    {
+        map->x[i] -= minX;
+        map->y[i] -= minY;
     }
 
     map->normal_x[0] = map->x[1] - map->x[0];
