@@ -28,9 +28,15 @@ void init_scene(Scene *scene)
     scene->state = Paused;
     scene->game_over_texture = load_texture("assets/textures/game_over_texture.png");
     scene->pause_texture = load_texture("assets/textures/help_texture.png");
+    scene->progress_pointer_texture = load_texture("assets/textures/pointer.jpg");
+    scene->progress_bar_texture = load_texture("assets/textures/progress.png");
 
     scene->buildings = malloc(scene->building_count * sizeof(Building));
     init_buildings(scene->map, scene->building_count, scene->buildings);
+
+    glEnable(GL_FOG);
+    glFogf(GL_FOG_DENSITY, 0.02f);
+    glFogfv(GL_FOG_COLOR, (GLfloat[]){0.8f, 0.8f, 0.8f, 1.0f});
 }
 
 void set_lighting(Scene *scene)
@@ -92,12 +98,22 @@ void render_scene(const Scene *scene)
         draw_gui(scene->game_over_texture);
         return;
     }
+    glEnable(GL_FOG);
     draw_origin();
     set_material(&(scene->bike->material));
     draw_model_scene_placed(scene->bike->position, scene->bike->rotation, &(scene->bike->model), scene->bike->texture_id);
     draw_map(scene->map);
     draw_buildings(scene);
     draw_skybox(scene->bike->position, 60);
+
+    vec2 hudPos1 = {2.2f, 0.0f};
+    vec2 hudPos2 = {2.4f, 2.0f};
+    vec2 size = {30.0f, 50.0f};
+    float pointerBottom = scene->progress * hudPos2.y;
+    vec2 pointerPos1 = {2.2f, pointerBottom + 0.02f};
+    vec2 pointerPos2 = {2.4f, pointerBottom};
+    draw_hud(scene->progress_pointer_texture, pointerPos1, pointerPos2, size);
+    draw_hud(scene->progress_bar_texture, hudPos1, hudPos2, size);
 }
 
 void draw_origin()
@@ -125,6 +141,7 @@ void move_bike(Bike *bike, double time_delta)
     bike->position.y += bike->speed * cos(degree_to_radian(-bike->rotation.z)) * time_delta;
     bike->rotation.z += bike->speed * bike->steering * 50 * time_delta;
     bike->rotation.y = -bike->steering * 50;
+    bike->speed += bike->speed * 0.01 * time_delta;
 }
 
 void draw_model_scene_placed(vec3 offset, vec3 rotation, Model *model, GLuint texture_id)
@@ -259,6 +276,7 @@ void check_for_loose(Scene *scene)
 {
     Bike *bike = scene->bike;
     float minDistanceToMap = 9.0f;
+
     for (int i = 0; i < scene->map->length - 1; i++)
     {
         vec2 checkpoint1 = {scene->map->x[i], scene->map->y[i]};
@@ -272,6 +290,7 @@ void check_for_loose(Scene *scene)
         if (distance < minDistanceToMap)
         {
             minDistanceToMap = distance;
+            scene->progress = (float)i / (float)scene->map->length;
         }
     }
     float distanceToFirstPoint = sqrt(pow(bike->position.x - scene->map->x[0], 2) + pow(bike->position.y - scene->map->y[0], 2));
@@ -284,6 +303,7 @@ void check_for_loose(Scene *scene)
 
 void draw_gui(GLuint texture)
 {
+    glDisable(GL_FOG);
 
     float ambient_material_color[] = {1.0f, 1.0f, 1.0f, 1.0f};
     float zeros[] = {0.0, 0.0, 0.0, 1.0};
@@ -306,6 +326,32 @@ void draw_gui(GLuint texture)
     glVertex3d(2.5, -1.5, -3);
     glTexCoord2f(0, 1);
     glVertex3d(-2.5, -1.5, -3);
+    glEnd();
+}
+
+void draw_hud(GLuint texture, vec2 pos1, vec2 pos2, vec2 imageSize)
+{
+    float ambient_material_color[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    float zeros[] = {0.0, 0.0, 0.0, 1.0};
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient_material_color);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, zeros);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, zeros);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    glColor3f(1, 1, 1);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glBegin(GL_QUADS);
+    glTexCoord2f(0, 0);
+    glVertex3f(pos1.x, pos2.y, -3); // Top-left corner
+    glTexCoord2f(1, 0);
+    glVertex3f(pos2.x, pos2.y, -3); // Top-right corner
+    glTexCoord2f(1, 1);
+    glVertex3f(pos2.x, pos1.y, -3); // Bottom-right corner
+    glTexCoord2f(0, 1);
+    glVertex3f(pos1.x, pos1.y, -3); // Bottom-left corner
     glEnd();
 }
 

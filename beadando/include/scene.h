@@ -28,8 +28,12 @@ typedef struct Scene
 
     GLuint pause_texture;
     GLuint game_over_texture;
+    GLuint progress_pointer_texture;
+    GLuint progress_bar_texture;
 
     float lighting;
+
+    float progress;
 } Scene;
 
 /**
@@ -70,5 +74,6 @@ void restart_game(Scene *scene);
 double distance_to_line_segment(vec2 point, vec2 segmentStart, vec2 segmentEnd);
 double dot(vec2 v1, vec2 v2);
 double distance(vec2 v1, vec2 v2);
+void draw_hud(GLuint texture, vec2 pos1, vec2 pos2, vec2 imageSize);
 
 #endif /* SCENE_H */
